@@ -39,6 +39,8 @@ set_var() {
     _SCRIPT_PATH=${x:-$_INSTALL_DIR}
     _TMP_DIR="/tmp/soaper-dl"
     
+    #_INSTALL_DIR=$(dirname "$(realpath "$0")")
+    #_SCRIPT_PATH=$(dirname "$(realpath "$0")")
     _SEARCH_LIST_FILE="search.list"
     _SOURCE_FILE=".source.html"
     _EPISODE_LINK_LIST=".episode.link"
@@ -211,7 +213,8 @@ download_media() {
     d="$("$_CURL" -sS "${_HOST}/home/index/${u}" \
         -H "referer: https://${_HOST}${1}" \
         --data-raw "pass=${p}")"
-    el="${_HOST}$($_JQ -r '.val' <<< "$d")"
+    el="$($_JQ -r '.val' <<< "$d")"
+    el="${_HOST}${el}"
     [[ "$el" != *".m3u8" ]] && el="$($_JQ -r '.val_bak' <<< "$d")"
     if [[ "$($_JQ '.subs | length' <<< "$d")" -gt "0" ]]; then
         sl="$($_JQ -r '.subs[]| select(.name | ascii_downcase | contains ("'"$_SUBTITLE_LANG"'")) | .path' <<< "$d" | head -1)"
@@ -264,13 +267,15 @@ create_episode_list() {
 }
 
 select_episodes_to_download() {
-    cat "$_SCRIPT_PATH/$_MEDIA_NAME/$_EPISODE_TITLE_LIST" >&2
-    echo -n "Which episode(s) to download: " >&2
+    cat "$_TMP_DIR/$_EPISODE_TITLE_LIST" >&2
+    echo -n "Which episode(s) to downolad: " >&2
     read -r s
     echo "$s"
 }
 
 main() {
+    #set_args "$@"
+    #set_var
     set_var && set_args "$@"
 
     local mlist=""
